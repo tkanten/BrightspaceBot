@@ -1,1 +1,0 @@
-Location where parsed out crawl data is stored

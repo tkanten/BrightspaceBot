@@ -1,1 +1,0 @@
-Database configs (should have backup frequency file)
