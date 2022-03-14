@@ -32,9 +32,8 @@ class Scraper:
         self.driver = webdriver.Firefox()
 
         if not self.get_login():
-            print("Error logging in. Exiting.")
-            self.driver.quit()
-            exit(1)
+            print("Error logging in. Trying again in 30 seconds...")
+            sleep(30)
 
     def get_login(self):
         """Handles login function. Returns boolean based on if login was sucessful"""
@@ -203,13 +202,11 @@ class Scraper:
         return tests
 
 
-if __name__ == "__main__":
-    #crawl_dump_file = sys.argv[1]
+def main(crawler):
     crawl_dump_file = os.path.join(
         os.path.dirname(__file__), "rawcrawldump.json")
     os.path.join(os.path.dirname(__file__), '', "Collections")
 
-    crawler = Scraper()
     raw_data = dict({})
     print("Starting crawl")
     for class_id in db["class_id_list"]:
@@ -226,12 +223,24 @@ if __name__ == "__main__":
         if tests:
             raw_data.update({f"{class_id}_tests": tests})
 
-    # close the webdriver
-    crawler.driver.quit()
+    # dump the file data, if
+    if not os.path.isfile(crawl_dump_file):
+        with open(crawl_dump_file, 'w') as file:
+            json.dump(raw_data, file)
+    else:
+        print("ISSUE DETECTED - CRAWL DUMP FILE EXISTS BUT IT SHOULDN'T BE THERE!")
 
-    # dump the file data
-    with open(crawl_dump_file, 'w') as file:
-        json.dump(raw_data, file)
+    # now return back to home page
+    crawler.driver.get("https://learn.sait.ca")
 
+
+if __name__ == "__main__":
+    #crawl_dump_file = sys.argv[1]
+    crawler = Scraper()
     print("Crawl succeeded")
-    exit(1)
+
+    # start up an infinite loop, re-run crawl every 300 seconds (5 min)
+    while 1:
+        crawler.get_login()
+        main(crawler)
+        sleep(300)

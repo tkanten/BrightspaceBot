@@ -4,6 +4,7 @@ from settings import *
 import time
 import datetime
 
+
 def setup(bot):
     bot.add_cog(CrawlControl(bot))
 
@@ -15,14 +16,14 @@ class CrawlControl(commands.Cog):
 
         self.channel = db["IMPORTANT_DATES_CHANNEL"]
 
-        if not self.crawl_loop.is_running():
-            self.crawl_loop.start()
         if not self.message_update_loop.is_running():
             self.message_update_loop.start()
 
+        # fire up the crawl script, runs in the background by itself
+        subprocess.Popen(
+            f'python3 {db["crawl_script_location"]} {db["raw_crawl_file"]}', shell=True)
+
     def cog_unload(self):
-        if self.crawl_loop.is_running():
-            self.crawl_loop.cancel()
         if self.message_update_loop.is_running():
             self.message_update_loop.cancel()
 
@@ -43,7 +44,8 @@ class CrawlControl(commands.Cog):
         if not class_id:
             raise Exception(f"couldn't find a class ID for {class_name}")
 
-        due_date = datetime.datetime.strptime(content[1], "%m/%d/%y-%I:%M-%p").timestamp()
+        due_date = datetime.datetime.strptime(
+            content[1], "%m/%d/%y-%I:%M-%p").timestamp()
 
         item_name = " ".join(content[2:])
         current_dict = db[f"{class_id}_custom"]
@@ -53,9 +55,10 @@ class CrawlControl(commands.Cog):
         # if it isn't, create dict and push
 
         if isinstance(current_dict, controller.ObservedDict):
-            current_dict.update({item_name: {"Name": item_name, "Ends": due_date}})
+            current_dict.update(
+                {item_name: {"Name": item_name, "Ends": due_date}})
         else:
-            current_dict = {item_name:{"Name":item_name,"Ends":due_date}}
+            current_dict = {item_name: {"Name": item_name, "Ends": due_date}}
         db[f"{class_id}_custom", "crawl_data"] = current_dict
 
         # delete after all operations completed, easy signifier that there was a parsing issue
@@ -96,21 +99,6 @@ class CrawlControl(commands.Cog):
 
         await self.msg_updater()
 
-    @commands.command()
-    @commands.is_owner()
-    async def force_c(self, ctx):
-        """Forces a webcrawl"""
-        await ctx.message.delete()
-        
-        subprocess.Popen(f'python {db["crawl_script_location"]} {db["raw_crawl_file"]}', shell=True)
-
-    @tasks.loop(minutes=5)
-    async def crawl_loop(self):
-        while not self.bot.is_ready():
-            await asyncio.sleep(1)
-
-        subprocess.Popen(f'python3 {db["crawl_script_location"]} {db["raw_crawl_file"]}', shell=True)
-
     @tasks.loop(seconds=30)
     async def message_update_loop(self):
         while not self.bot.is_ready():
@@ -122,8 +110,8 @@ class CrawlControl(commands.Cog):
         with open(db["raw_crawl_file"], "r") as entry:
             raw_data = json.load(entry)
 
-        for key,val in raw_data.items():
-            db[key,"crawl_data"] = val
+        for key, val in raw_data.items():
+            db[key, "crawl_data"] = val
         os.remove(db["raw_crawl_file"])
 
         await self.msg_updater()
@@ -138,7 +126,7 @@ class CrawlControl(commands.Cog):
 
         for class_id in db["class_id_list"]:
             final_output = []
-            ## name mapping for class ID
+            # name mapping for class ID
             class_name = f"__{db['class_id_dictionary'][f'{class_id}']}__"
             final_output.append(class_name)
 
