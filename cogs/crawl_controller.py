@@ -21,7 +21,7 @@ class CrawlControl(commands.Cog):
 
         # fire up the crawl script, runs in the background by itself
         subprocess.Popen(
-            f'python3 {db["crawl_script_location"]} {db["raw_crawl_file"]}', shell=True)
+            f'python {db["crawl_script_location"]} {db["raw_crawl_file"]}', shell=True)
 
     def cog_unload(self):
         if self.message_update_loop.is_running():
