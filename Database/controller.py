@@ -119,9 +119,12 @@ class Database:
         for collection in os.listdir(COLLECTIONS):
             collection_path = os.path.join(COLLECTIONS, collection)
 
+            if os.path.isfile(collection_path):
+                continue
+            
+            print(collection, "<-------------------------")
             # loop through each document in a collection
             for document in os.listdir(collection_path):
-
                 attribute_name = document.split(".")[0]
                 attribute_path = os.path.join(collection_path, document)
 

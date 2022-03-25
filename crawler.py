@@ -26,7 +26,7 @@ class Scraper:
         """Login/authentication attributes"""
         self.username = db["username"]
         self.password = db["password"]
-        self.submit_button = db["submit_button"]
+        self.submit_button = "/html/body/div/div/div/div[1]/form/div[3]/div/button"
 
         """Initalizing driver"""
         self.driver = webdriver.Firefox()
