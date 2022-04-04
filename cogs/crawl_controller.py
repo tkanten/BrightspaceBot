@@ -165,6 +165,9 @@ class CrawlControl(commands.Cog):
                 message = await self.channel.fetch_message(db[f"{class_id}_MESSAGE"])
                 await message.edit(content=final_output)
 
+            # adding a little delay in order to not spam the API
+            await asyncio.sleep(5)
+
         # now create or edit the update time stamp
         update_time_stamp = f"\n_Last checked {datetime.datetime.now().strftime('%b %d, %I:%M %p MST')}_"
         if not db[f"LAST_UPDATE_MESSAGE"]:
